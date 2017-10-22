@@ -24,28 +24,28 @@ class WebService(DefinitionBase):
     图片上传与去重函数：
 
     输入参数
-        图片ID，图像特征值密文，图像感知哈希，图像密文
+        图片ID，图像特征值密文1，图像特征值密文2，图像感知哈希，图像密文
     返回值
         上传成功：1
         有同名图像：2
         有重复图像：3
     '''
-    @soap(String, String, String, String, _returns = Integer)  
-    def upload(self, image_id, feature, dhash, ciphertext):
-        info = image_upload_dedup(image_id, feature, dhash, ciphertext)
+    @soap(String, String, String, String, String, _returns = Integer)  
+    def upload(self, image_id, feature1, feature2, dhash, ciphertext):
+        info = image_upload_dedup(image_id, feature1, feature2, dhash, ciphertext)
         return info
     
     '''
     图片搜索函数：
 
     输入参数
-        图像特征值密文
+        图像特征值密文1，图像特征值密文2
     返回值
         图像密文列表（10张）
     ''' 
-    @soap(String, _returns = Array(String))  
-    def search(self, feature):
-        info = image_search(feature)
+    @soap(String, String, _returns = Array(String))  
+    def search(self, feature1, feature2):
+        info = image_search( feature1, feature2)
         return info
  
 if __name__=='__main__':  

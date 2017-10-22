@@ -12,13 +12,13 @@ import numpy
 图片上传与去重函数：
 
 输入参数
-    图片ID，图像特征值密文，图像感知哈希，图像密文
+    图片ID，图像特征值密文1，图像特征值密文2，图像感知哈希，图像密文
 返回值
     上传成功：1
     有同名图像：2
     有重复图像：3
 ''' 
-def image_upload_dedup(image_id, feature, dhash, ciphertext):
+def image_upload_dedup(image_id, feature1, feature2, dhash, ciphertext):
     
     #连接MySQL数据库
     conn = MySQLdb.connect(
@@ -44,7 +44,7 @@ def image_upload_dedup(image_id, feature, dhash, ciphertext):
         result = cur.fetchall()
     
         for row in result:
-            dhash_temp = row[3]
+            dhash_temp = row[4]
             
             # 计算感知哈希差异位数
             difference = (int(dhash, 16)) ^ (int(dhash_temp, 16))
@@ -58,7 +58,7 @@ def image_upload_dedup(image_id, feature, dhash, ciphertext):
             f.write('%s' % ciphertext) 
         
         # 在数据库中添加图像信息
-        sql = "insert into images(image_id, feature, dhash) values('%s','%s','%s')" % (image_id, feature, dhash)
+        sql = "insert into images(image_id, feature1, feature2, dhash) values('%s','%s','%s','%s')" % (image_id, feature1, feature2, dhash)
         cur.execute(sql)
         
         # 提交数据库操作
@@ -78,11 +78,11 @@ def image_upload_dedup(image_id, feature, dhash, ciphertext):
 图片搜索函数：
 
 输入参数
-    图像特征值密文
+    图像特征值密文1，图像特征值密文2
 返回值
     图像密文列表（10张）
 '''
-def image_search(feature):
+def image_search(feature1, feature2):
     
     #连接MySQL数据库
     conn = MySQLdb.connect(
@@ -97,11 +97,14 @@ def image_search(feature):
     cur = conn.cursor() 
     
     # 将传入特征向量字符串转换为float类型列表
-    feature = feature[1:-1].split(', ')
-    feature = map(float, feature)
+    feature1 = feature1[1:-1].split(', ')
+    feature1 = map(float, feature1)
+    feature2 = feature2[1:-1].split(', ')
+    feature2 = map(float, feature2)
     
     # 将特征向量转换为numpy数组
-    search_feature = numpy.array(feature) 
+    search_feature1 = numpy.array(feature1) 
+    search_feature2 = numpy.array(feature2) 
     
     image_list = []
     image_dict = {}
@@ -113,19 +116,23 @@ def image_search(feature):
     
     for row in result:
         image_id = row[1]
-        feature = row[2]
+        feature1 = row[2]
+        feature2 = row[3]
         
         # 将特征向量字符串转换为float类型列表
-        feature = feature[1:-1].split(', ')
-        feature = map(float, feature)
+        feature1 = feature1[1:-1].split(', ')
+        feature1 = map(float, feature1)
+        feature2 = feature2[1:-1].split(', ')
+        feature2 = map(float, feature2)
         
         # 将特征向量转换为numpy数组
-        source_feature = numpy.array(feature) 
+        source_feature1 = numpy.array(feature1) 
+        source_feature2 = numpy.array(feature2)
         
         #distance = numpy.linalg.norm(search_feature - source_feature) # 计算欧氏距离
         
         # 计算相似度
-        distance = search_feature.dot(source_feature) 
+        distance = search_feature1.dot(source_feature1) + search_feature2.dot(source_feature2)
         
         '''
         with open('images/%s' % image_id, 'r') as f:
