@@ -8,6 +8,8 @@ import os
 import os.path
 import numpy
 
+import time
+
 '''
 图片上传与去重函数：
 
@@ -39,6 +41,8 @@ def image_upload_dedup(image_id, feature1, feature2, dhash, ciphertext):
     # 如无同名图像
     if cur.execute(sql_search) == 0L: 
         
+        #t0 = time.time()
+        
         # 遍历数据库
         cur.execute("SELECT * FROM images")
         result = cur.fetchall()
@@ -52,6 +56,11 @@ def image_upload_dedup(image_id, feature1, feature2, dhash, ciphertext):
             # 如有重复图像（差异位数小于5视为相同图像）
             if bin(difference).count("1") < 5:
                 return 3 
+        
+        #t1 = time.time()
+        #t = t1 - t0
+        #with open('data_dedup', 'a') as f:
+        #    f.write('3000 ' + str(t) + '\n')
         
         # 保存密文图像文件
         with open('images/%s' % image_id, 'w') as f:
@@ -110,6 +119,8 @@ def image_search(feature1, feature2):
     image_dict = {}
     #threshold = 2.6 # 设置门限值
     
+    #t0 = time.time()
+    
     # 遍历数据库
     cur.execute("SELECT * FROM images")
     result = cur.fetchall()
@@ -153,11 +164,16 @@ def image_search(feature1, feature2):
     # 将搜索结果按相似度排序       
     image_dict = sorted(image_dict.items(), key = lambda item:item[1])   
     
-    # 取前10个相似图像
-    for i in range(10):
+    # 取前15个相似图像
+    for i in range(15):
         with open('images/%s' % image_dict[i][0], 'r') as f:
             ciphertext = f.read()
         image_list.append(ciphertext)
+    
+    #t1 = time.time()
+    #t = t1 - t0
+    #with open('data_search', 'a') as f:
+    #    f.write('3000 ' + str(t) + '\n')
     
     # 返回搜索结果密文图像列表
     return image_list 

@@ -13,7 +13,7 @@ from soaplib.core.model.clazz import Array
 from functions import image_upload_dedup, image_search
 
 # 服务器IP地址
-IP_ADDRESS = '10.170.43.249'
+IP_ADDRESS = '10.170.19.200'
 
 # 端口号
 PORT = 7789
@@ -41,7 +41,7 @@ class WebService(DefinitionBase):
     输入参数
         图像特征值密文1，图像特征值密文2
     返回值
-        图像密文列表（10张）
+        图像密文列表（15张）
     ''' 
     @soap(String, String, _returns = Array(String))  
     def search(self, feature1, feature2):
